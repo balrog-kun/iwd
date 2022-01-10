@@ -146,40 +146,47 @@ Methods		void Release() [noreply]
 			already been unregistered.
 
 		void ConfigureIPv4(object device, string interface,
-				   array(dict) configs)
+				   array(dict) subnets)
 
 			This method gets called during a connection setup
 			when a new set of IPv4 configuration values is to
 			be written to a network interface.  The connection
 			is aborted if the method call returns an error or
-			times out.  The 'configs' array contains a set of
-			IP configurations, one for each subnet that is
-			present on the network.  Each subnet configuration
-			dictionary (a{sv}) maps string keys to values of
-			types defined per key.
+			times out.  The 'subnets' array contains one set of
+			configuration properties for each subnet (prefix)
+			that is reachable, either on-link or through a
+			router.  Each configuration dictionary (a{sv}) maps
+			string keys to values of types defined per key.
 
 			The following key/value pairs are used, but more
 			may be added in future versions.  This dictionary
 			is defined in the same way for IPv4 and IPv6.
 
-			string Method - Indicates whether the local address
-			on this subnet was set statically (value "static") or
-			obtained automatically such as through DHCP (value
-			"auto", inclused SLAAC for IPv6).  Even when the
-			address was obtained from the remote end some
-			configuration bits, such as DNS addresses, may have
-			been overridden locally.
+			(string, byte) Prefix - Subnet address string and
+			the prefix length.  For IPv4 this maps to the
+			netmask.  An entry for a default router will have
+			an all-zeros address and prefix length here.
 
-			byte PrefixLength - Holds the prefix-length of the
-			local subnet.  For IPv4 this maps to the netmask.
+			string Router [optional] - Gateway or next-hop
+			address to reach this subnet if it's an off-link
+			subnet.  This property will never be present if
+			'Method' and 'Addresses' are present (see below).
 
-			array(string, uint16) Addresses - Local IP address
-			strings and their integer relative preference values.
-			Addresses with a lower value in the second element
-			are preferred.
+			string Method [optional] - Indicates whether local
+			address(es) on this subnet, if any, were set
+			statically (value "static") or obtained
+			automatically such as through DHCP (value "auto",
+			including SLAAC for IPv6).  Even when the address
+			was obtained from the remote end some configuration
+			bits, such as DNS addresses, may have been
+			overridden manually.
 
-			string Gateway [optional] - The subnet's gateway or
-			router address if one exists.
+			array(string, uint16) Addresses [optional] - Local
+			IP address strings in this subnet and their integer
+			relative preference values.  Addresses with a lower
+			value in the second element are preferred.  This
+			property can only be present for on-link subnets,
+			i.e. when there's no 'Router' property.
 
 			array(string) DomainNameServers [optional] - Holds
 			the list of DNS addresses configured if any exist.
